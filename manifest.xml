@@ -24,7 +24,7 @@
   <!-- Version of your tool. Will be used to decide if (auto-)upgrading is necessary. -->
   <!-- You should upgrade the version number every time you change the tool. -->
   <!-- The version is evaluated as a double precision floating point value -->
-  <Version>0.2</Version>
+  <Version>0.3</Version>
   
   <!-- Unique identifier for your tool. The identifier must match the XRNX bundle name -->
   <!-- without the extension .xrnx. This will be done automatically by Renoise -->

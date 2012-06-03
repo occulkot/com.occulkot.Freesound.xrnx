@@ -29,7 +29,7 @@ com.renoise.Freesound.xrnx/main.lua
 require 'freesound'
 local vb = ""
 require 'renoise.http'
-require 'renoise.http.request'
+require 'request'
   
 --------------------------------------------------------------------------------
 -- menu entries
@@ -71,31 +71,31 @@ local function render_sample_row(sample)
   local row = vb:row{
      
      vb:button {
-	bitmap="download.bmp",
-	pressed = function()
-	   download_sample(sample)
-	end
-	},
+  bitmap="download.bmp",
+  pressed = function()
+     download_sample(sample)
+  end
+  },
      vb:text{
-	width=50,
-	text = string.format("%d", sample['id'])
-	    },
+  width=50,
+  text = string.format("%d", sample['id'])
+      },
      vb:text{
-	width=240,
-	text = short(sample['name'], 40)
-	    },
+  width=240,
+  text = short(sample['name'], 40)
+      },
      vb:text{
-	width=100,
-	text = short(sample['author'], 15)
-	    },
+  width=100,
+  text = short(sample['author'], 15)
+      },
      vb:text{
-	width=30,
-	text = sample['type']
-	    },
+  width=30,
+  text = sample['type']
+      },
      vb:text{
-	width=30,
-	text = string.format("%.3f", sample['duration'])
-	    },
+  width=30,
+  text = string.format("%.3f", sample['duration'])
+      },
     }
   return row
 end
@@ -150,7 +150,7 @@ function download_sample(sample)
    download_info = renoise.app():show_custom_dialog("...", vb:column{vb:text{text="downloading " .. sample_name .. ' please wait'}})
    if not checked_dir then
       os.mkdir(_get_default_download_folder())
-      checked_dir = True
+      checked_dir = true
    end
    Request({
     url=Freesound:download_url(id), 
@@ -169,40 +169,40 @@ function show_sample_table(samples)
    hide_sample_list()
 
    local st = vb:column{
-	 width = 390,
-	 margin = 2,
-	 vb:row{
+   width = 390,
+   margin = 2,
+   vb:row{
      vb:text{
-	    font="bold",
-	width=20,
-	text = '..'
-	    },
+      font="bold",
+  width=20,
+  text = '..'
+      },
      vb:text{
-	    font="bold",
-	width=50,
-	text = 'id',
-	    },
+      font="bold",
+  width=50,
+  text = 'id',
+      },
      vb:text{
-	    font="bold",
-	width=240,
-	text = 'name',
-	    },
+      font="bold",
+  width=240,
+  text = 'name',
+      },
      vb:text{
-	    font="bold",
-	width=100,
-	text = 'author'
-	    },
+      font="bold",
+  width=100,
+  text = 'author'
+      },
      vb:text{
-	    font="bold",
-	width=30,
-	text = 'type'
-	    },
+      font="bold",
+  width=30,
+  text = 'type'
+      },
      vb:text{
-	    font="bold",
-	width=30,
-	text = 'secs'
-	    },
-	       },
+      font="bold",
+  width=30,
+  text = 'secs'
+      },
+         },
    }
    for k, sample in pairs(samples) do
      st:add_child(render_sample_row(sample))
@@ -237,7 +237,7 @@ end
 
 function load_results ()
 Freesound:new_search(vb.views.name.value, vb.views.tag.value, vb.views.licence.value,page, 
-			      display_results)
+            display_results)
 end
 
 
@@ -282,23 +282,23 @@ function show_search_dialog()
       width = 60,
       text = "search",
       notifier = function ()
-	 page = 1
-	 load_results()
-	 end
-	       }
+   page = 1
+   load_results()
+   end
+         }
    }
    
    local search_bar = vb:row {
       vb:text{
-	 text = "name"
+   text = "name"
       },
       name_field,
       vb:text{
-	 text = "tag"
+   text = "tag"
       },
       tag_field,
       vb:text{
-	 text = "licence"
+   text = "licence"
       },
       licence_field,
       search_button
@@ -314,40 +314,40 @@ function show_search_dialog()
    local pagination = vb:horizontal_aligner {
       mode="center",
       vb:button {
-	 id="prev_button",
-	 text="< prev <",
-	 active = false,
-	 width = 40,
-	 pressed = function()
-	    page = page - 1
-	    load_results() end
-		},
+   id="prev_button",
+   text="< prev <",
+   active = false,
+   width = 40,
+   pressed = function()
+      page = page - 1
+      load_results() end
+    },
       vb:text{
-	 width=200,
-	 align="center",
-	 text="...",
-	 id="pages",
-	     },
+   width=200,
+   align="center",
+   text="...",
+   id="pages",
+       },
       vb:button {
-	 id="next_button",
-	 text="> next >",
-	 active = false,
-	 width = 40,
-	 pressed = function()
-	    page = page + 1
-	    load_results()
-	 end
-		}
+   id="next_button",
+   text="> next >",
+   active = false,
+   width = 40,
+   pressed = function()
+      page = page + 1
+      load_results()
+   end
+    }
    }
    
    renoise.app():show_custom_dialog(
       "Search freesound.org samples",
       vb:column {
-	 margin = CONTROL_MARGIN,
-	 spacing = DIALOG_SPACING,
-	 search_bar,
-	 sample_list,
-	 pagination
+   margin = CONTROL_MARGIN,
+   spacing = DIALOG_SPACING,
+   search_bar,
+   sample_list,
+   pagination
       }
    )
 end

@@ -107,21 +107,21 @@ local function _get_default_download_folder()
     
     if (os.getenv("HOMEPATH"):find("\\Users\\", 1)) then
       -- Windows Vista/7: \Users\<username>\Downloads
-      dir = os.getenv("USERPROFILE")..'\\Downloads\\Renoise'
+      dir = os.getenv("USERPROFILE")..'\\Downloads\\Renoise\\'
     elseif (os.getenv("HOMEPATH"):find("\\Documents")) then  
       -- Windows XP: \Documents and Settings\<username>\My Documents\Downloads
       -- TODO International location of Windows XP My Documents
       --"HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" > "Personal"
       local MYDOCUMENTS = "MY DOCUMENTS"
-      dir = os.getenv("USERPROFILE")..MYDOCUMENTS..'\\Downloads\\Renoise'
+      dir = os.getenv("USERPROFILE")..MYDOCUMENTS..'\\Downloads\\Renoise\\'
     end    
   elseif (os.platform() == "MACINTOSH") then
     -- Mac: /Users/<username>/Downloads
-    dir = os.getenv('HOME').."/Downloads/Renoise"
+    dir = os.getenv('HOME').."/Downloads/Renoise/"
     
   elseif (os.platform() == "LINUX") then
     -- Linux: home\<username>\Downloads  
-    dir = os.getenv('HOME').."/Downloads/Renoise"
+    dir = os.getenv('HOME').."/Downloads/Renoise/"
   end  
   return dir
 end
@@ -130,10 +130,11 @@ function load_sample(filename)
 --   renoise.song().instruments[].samples[].sample_buffer:load_from(filename)
 end
 
+local checked_dir = false
 function download_sample(sample)
    local download_info = nil
    local sample_name = string.format("%s.%s", sample['name'], sample['type'])
-   local final_name = _get_default_download_folder() ..'/'.. sample_name
+   local final_name = _get_default_download_folder()  .. sample_name
    local suc = function (fname, costam, costam)
       os.rename(fname, final_name)
       renoise.song().selected_instrument:clear()
@@ -146,7 +147,11 @@ function download_sample(sample)
       renoise.app():show_custom_dialog("error", vb:column{vb:text{text="Error while downloading " .. sample_name}})
    end
    local id = sample['id']
-   download_info = renoise.app():show_custom_dialog("...", vb:column{vb:text{text="downloading " .. sample_name .. ' please wait'}}) 
+   download_info = renoise.app():show_custom_dialog("...", vb:column{vb:text{text="downloading " .. sample_name .. ' please wait'}})
+   if not checked_dir then
+      os.mkdir(_get_default_download_folder())
+      checked_dir = True
+   end
    Request({
     url=Freesound:download_url(id), 
     method=Request.GET, 

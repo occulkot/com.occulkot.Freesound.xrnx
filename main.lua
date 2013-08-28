@@ -211,14 +211,14 @@ local function render_sample_row(sample)
    local icon = 
       vb:bitmap {
          height=30,
-         bitmap=sample['img']
+         bitmap=sample['img'],
+         tooltip = sample['name'] .. ' by: ' .. sample['author'],
       }
    samples[sample['id']]['icon'] = icon
    return vb:column{
       width=124,
       margin=2,
       style='border',
-      tooltip = sample['name'] .. ' by: ' .. sample['author'],
       vb:row{ icon },
       
       vb:row{

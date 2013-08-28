@@ -73,7 +73,7 @@ function download_sample(sample)
    local sample_name = string.gsub(string.gsub(string.format("%s.%s", sample['name'], sample['type']), ' ', ''), '"', '')
    
    local suc = function (fname, costam, costam)
-      os.rename(fname, final_name)
+      --os.rename(fname, final_name)
       renoise.song().selected_instrument:clear()
       download_info:close()
       renoise.song().selected_instrument.samples[1].sample_buffer:load_from(fname)

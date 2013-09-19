@@ -70,13 +70,19 @@ local page = 1
 -- sample manipulation
 function download_sample(sample)
    local download_info = nil
-   local sample_name = string.gsub(string.gsub(string.format("%s.%s", sample['name'], sample['type']), ' ', ''), '"', '')
-   
+   local sample_name = string.format("%d-%s", sample['id'], sample['name'])
+   local sample_name = string.gsub(string.gsub(sample_name, ' ', ''), '"', '')
+   local final_name = ''
+   if options.SavePath.value ~= '' then
+     final_name = options.SavePath.value .. sample_name
+   else
+     final_name = os.tmpname()  ..'.'.. sample['type']
+   end
    local suc = function (fname, costam, costam)
-      --os.rename(fname, final_name)
+      os.move(fname, final_name)
       renoise.song().selected_instrument:clear()
       download_info:close()
-      renoise.song().selected_instrument.samples[1].sample_buffer:load_from(fname)
+      renoise.song().selected_instrument.samples[1].sample_buffer:load_from(final_name)
       renoise.song().selected_instrument.name = sample['name']
    end
    local erro = function (error)
@@ -277,6 +283,7 @@ function show_settings()
    options:load_from(sf)
    local ss = nil
    local ff = vb:textfield{value = options.Executable.value, width=300}
+   local fs = vb:textfield{value = options.SavePath.value, width=300}
    ss = renoise.app():show_custom_dialog("Freesound settings", vb:column{
                                             vb:row{
                                                vb:text{text="Program for playing sample "}
@@ -290,9 +297,21 @@ function show_settings()
                                                end},
                                             },
                                             vb:row{
+                                               vb:text{text="Save Directory "}
+                                            },
+                                            vb:row{
+                                               fs,
+                                               vb:button{text="Browse for folder",
+                                                         pressed = function ()
+                                                            local t = renoise.app():prompt_for_path('Browse for download folder')
+                                                            fs.value = t
+                                               end},
+                                            },
+                                            vb:row{
                                                vb:button{text="Save",
                                                          pressed = function ()
                                                             options.Executable.value = ff.value
+                                                            options.SavePath.value = fs.value
                                                             options:save_as(sf)
                                                             ss:close()
                                                end}

@@ -70,7 +70,7 @@ local page = 1
 -- sample manipulation
 function download_sample(sample)
    local download_info = nil
-   local sample_name = string.format("%d-%s", sample['id'], sample['name'])
+   local sample_name = string.format("%d-%s.%s", sample['id'], sample['name'], sample['type'])
    local sample_name = string.gsub(string.gsub(sample_name, ' ', ''), '"', '')
    local final_name = ''
    if options.SavePath.value ~= '' then

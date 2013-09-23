@@ -23,6 +23,7 @@ end
 -- options
 local options = renoise.Document.create("FreesoundSettings") {}
 options:add_property("SavePath", "/")
+options:add_property("ExecutableInfo", "")
 options:add_property("Executable", "")
 
 -- menu
@@ -102,20 +103,22 @@ function download_sample(sample)
 end
 
 
-local show_preview_warning = false
 function preview_sample(sample)
-   if options.Executable.value == '' and not show_preview_warning then
+   
+   if options.Executable.value == '' and options.ExecutableInfo.value == '' then
       local war = vb:multiline_text{width=200, height=100, text= [[ You dont have sample player configured
 Renoise will use default player provided by system ]]}
+      local sf = renoise.tool().bundle_path .. 'settings.xml'
       renoise.app():show_custom_dialog("Warning!", vb:column{war})
-      show_preview_warning = true
+      options.ExecutableInfo.value = 'showed'
+      options:save_as(sf)
    end
    local download_info = nil
    local suc = function (fname, costam, costam)
       if options.Executable.value == '' then
          renoise.app():open_url('file://' .. fname)
       else
-         os.execute(options.Executable.value .. ' ' .. fname .. '&')
+         os.execute(options.Executable.value .. ' "' .. fname .. '"&')
       end
       download_info:close()
    end

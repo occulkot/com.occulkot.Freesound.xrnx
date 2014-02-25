@@ -25,6 +25,7 @@ local options = renoise.Document.create("FreesoundSettings") {}
 options:add_property("SavePath", "/")
 options:add_property("ExecutableInfo", "")
 options:add_property("Executable", "")
+options:add_property("Executableparams", "")
 
 -- menu
 renoise.tool():add_menu_entry {
@@ -44,6 +45,7 @@ renoise.tool():add_menu_entry {
 -- variables
 local main_url = "http://freesound.org/api/"
 local api_key = "b79e90926df54fa98a5759d77eb55a29"
+local status = nil
 
 local sort_orders = {
    "Sort by the number of downloads, most downloaded sounds first.",
@@ -81,17 +83,25 @@ function download_sample(sample)
    end
    local suc = function (fname, costam, costam)
       os.move(fname, final_name)
-      renoise.song().selected_instrument:clear()
-      download_info:close()
-      renoise.song().selected_instrument.samples[1].sample_buffer:load_from(final_name)
-      renoise.song().selected_instrument.name = sample['name']
+      status.text = 'success'
+      if renoise.song().selected_sample then
+         renoise.song().selected_sample:clear()
+         renoise.song().selected_sample.sample_buffer:load_from(final_name)
+         renoise.song().selected_sample.name = sample['name']
+      else
+         renoise.song().selected_instrument:insert_sample_at(1)
+         renoise.song().selected_instrument.samples[1].sample_buffer:load_from(final_name)
+         renoise.song().selected_instrument.name = sample['name']
+         renoise.song().selected_instrument.samples[1].name = sample['name']
+         
+
+      end
    end
    local erro = function (error)
-      download_info:close()
-      renoise.app():show_custom_dialog("error", vb:column{vb:text{text="Error while downloading " .. sample_name}})
+      status.text="Error while downloading " .. sample_name
    end
    local id = sample['id']
-   download_info = renoise.app():show_custom_dialog("...", vb:column{vb:text{text="downloading " .. sample_name .. ' please wait'}})
+   status.text = "downloading " .. sample_name .. ' please wait'
    local uri = main_url .. 'sounds/' .. id .. '/serve/?api_key=' .. api_key
    Request({
               url=uri, 
@@ -115,18 +125,21 @@ Renoise will use default player provided by system ]]}
    end
    local download_info = nil
    local suc = function (fname, costam, costam)
+      status.text = 'playing preview ...'
       if options.Executable.value == '' then
          renoise.app():open_url('file://' .. fname)
       else
-         os.execute(options.Executable.value .. ' "' .. fname .. '"&')
+         if io.popen("uname -s"):read("*l"):match("^Windows") then
+            os.execute('start "" "' .. options.Executable.value .. '" "' .. options.Executableparams.value .. '" "' .. fname .. '"')
+         else
+            os.execute('"' .. options.Executable.value .. '" ' .. options.Executableparams.value .. ' "' .. fname .. '"&')
+         end
       end
-      download_info:close()
    end
    local erro = function (error)
-      download_info:close()
-      renoise.app():show_custom_dialog("error", vb:column{vb:text{text="Error while downloading " .. sample['name']}})
+      status.text="Error while downloading " .. sample['name']
    end
-   download_info = renoise.app():show_custom_dialog("...", vb:column{vb:text{text="previewing " .. sample['name'] .. ' please wait'}})
+   status.text = "previewing " .. sample['name'] .. ' please wait'
    local uri = sample['preview']
    Request({
               url=uri, 
@@ -165,10 +178,12 @@ end
 local samples = {}
 local function download_img(url, icon, sample)
    local suc = function (fname, custam, costam)
-      if samples[sample['id']]['icon'] then
-         samples[sample['id']]['icon'].bitmap = fname
-      else
-         samples[sample['id']]['img'] = fname
+      if samples[sample['id']] then
+         if samples[sample['id']]['icon'] then
+            samples[sample['id']]['icon'].bitmap = fname
+         else
+            samples[sample['id']]['img'] = fname
+         end
       end
    end
    Request({
@@ -286,6 +301,7 @@ function show_settings()
    options:load_from(sf)
    local ss = nil
    local ff = vb:textfield{value = options.Executable.value, width=300}
+   local fp = vb:textfield{value = options.Executableparams.value, width=300}
    local fs = vb:textfield{value = options.SavePath.value, width=300}
    ss = renoise.app():show_custom_dialog("Freesound settings", vb:column{
                                             vb:row{
@@ -298,6 +314,13 @@ function show_settings()
                                                             local t = renoise.app():prompt_for_filename_to_read({"*"}, 'Select sample player')
                                                             ff.value = t
                                                end},
+                                            },
+                                            vb:row{
+                                               vb:text{text="Program parameters "}
+                                            },
+                                            vb:row{
+                                               fp,
+                                               vb:text{text=""}
                                             },
                                             vb:row{
                                                vb:text{text="Save Directory "}
@@ -314,6 +337,7 @@ function show_settings()
                                                vb:button{text="Save",
                                                          pressed = function ()
                                                             options.Executable.value = ff.value
+                                                            options.Executableparams.value = fp.value
                                                             options.SavePath.value = fs.value
                                                             options:save_as(sf)
                                                             ss:close()
@@ -337,7 +361,6 @@ function check_settings()
    end
    show_search_dialog()
 end
-
 -- search dialog
 function show_search_dialog()
    vb = renoise.ViewBuilder()
@@ -447,6 +470,15 @@ function show_search_dialog()
          id="results_pad",
       },
    }
+      status = vb:text{
+         align="center",
+         text = "",
+         
+      }
+   local status_bar = vb:horizontal_aligner {
+      mode="center",
+      status
+   }
    
    renoise.app():show_custom_dialog(
       "Search freesound.org samples",
@@ -455,7 +487,8 @@ function show_search_dialog()
          spacing = DIALOG_SPACING,
          search_bar,
          sample_list,
-         pagination
+         pagination,
+         status_bar
       }
                                    )
 end

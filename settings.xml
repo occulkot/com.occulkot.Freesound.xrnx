@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <FreesoundSettings doc_version="0">
-  <SavePath/>>
-  <ExecutableInfo/>
+  <SavePath>/home/occulkot/</SavePath>
+  <ExecutableInfo>showed</ExecutableInfo>
   <Executable/>
+  <Executableparams/>
 </FreesoundSettings>

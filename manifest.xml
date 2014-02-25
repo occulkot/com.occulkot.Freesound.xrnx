@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<RenoiseScriptingTool>
-  <ApiVersion>3.0</ApiVersion>
-  <Version>0.4</Version>
-  <Id>com.renoise.Freesound</Id>
+<RenoiseScriptingTool doc_version="0">
+  <ApiVersion>4</ApiVersion>
+  <AutoUpgraded>true</AutoUpgraded>
+  <Id>com.occulkot.Freesound</Id>
+  <Version>0.69999999999999996</Version>
   <Author>Mateusz Ratajski [occulkot@gmail.com]</Author>
-  <Category>Samples</Category>
   <Name>Renoise Freesound Integration</Name>
+  <Category>Samples</Category>
   <Description>Ability do download </Description>
-  <Icon>icon.png</Icon>
   <Homepage>http://scripting.renoise.com</Homepage>
+  <Icon>icon.png</Icon>
   <Platform>Windows, Mac, Linux</Platform>
 </RenoiseScriptingTool>
-

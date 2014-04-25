@@ -88,13 +88,14 @@ function download_sample(sample)
          renoise.song().selected_sample:clear()
          renoise.song().selected_sample.sample_buffer:load_from(final_name)
          renoise.song().selected_sample.name = sample['name']
+         if renoise.song().selected_instrument.name == '' then
+           renoise.song().selected_instrument.name = sample['name']
+         end
       else
          renoise.song().selected_instrument:insert_sample_at(1)
          renoise.song().selected_instrument.samples[1].sample_buffer:load_from(final_name)
          renoise.song().selected_instrument.name = sample['name']
          renoise.song().selected_instrument.samples[1].name = sample['name']
-         
-
       end
    end
    local erro = function (error)
@@ -129,7 +130,8 @@ Renoise will use default player provided by system ]]}
       if options.Executable.value == '' then
          renoise.app():open_url('file://' .. fname)
       else
-         if io.popen("uname -s"):read("*l"):match("^Windows") then
+         local osa = io.popen("uname -s"):read("*l")
+         if  osa == nil or osa:match("^Windows") then
             os.execute('start "" "' .. options.Executable.value .. '" "' .. options.Executableparams.value .. '" "' .. fname .. '"')
          else
             os.execute('"' .. options.Executable.value .. '" ' .. options.Executableparams.value .. ' "' .. fname .. '"&')

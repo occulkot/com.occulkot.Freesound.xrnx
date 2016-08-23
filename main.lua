@@ -43,11 +43,12 @@ renoise.tool():add_menu_entry {
                               }
 
 -- variables
-local main_url = "http://freesound.org/api/"
-local api_key = "b79e90926df54fa98a5759d77eb55a29"
+local main_url = "https://freesound.org/apiv2/"
+local credentials = require("credentials")
 local status = nil
 
 local sort_orders = {
+  "Sort by a relevance score returned by our search engine (default).",
    "Sort by the number of downloads, most downloaded sounds first.",
    "Same as above, but least downloaded sounds first.",
    "Sort by the duration of the sounds, longest sounds first.",
@@ -59,6 +60,7 @@ local sort_orders = {
 }
 
 local sort_pars = {
+  "score",
    "downloads_desc",
    "downloads_asc",
    "duration_desc",
@@ -155,9 +157,9 @@ end
 
 -- freesound api
 function search(name, tag, author, sort, page)
-   local url = main_url  .. 'sounds/search/?api_key=' .. api_key .. "&"
+   local url = main_url  .. 'search/text/?token=' .. credentials.token .. "&"
    local pars = {['tag']='',}
-   pars['name'] = 'q=' .. name .. ''
+   pars['name'] = 'query=' .. name .. ''
    local filtr = ''
    if tag ~= "" then
       filtr = filtr .. ' tag:' .. tag .. ''
@@ -166,14 +168,14 @@ function search(name, tag, author, sort, page)
       filtr = filtr .. ' username:' .. author .. ''
    end
    if filtr ~= "" then
-      pars['filtr'] = 'f=' .. filtr
+      pars['filter'] = 'filter=' .. filtr
    end
    
-   pars['sort'] = 's=' .. sort_pars[sort] .. ''
+   pars['sort'] = 'sort=' .. sort_pars[sort] .. ''
    for i, filtr in pairs(pars) do
       url = url .. filtr .. '&'
    end
-   url = url .. 'p=' .. page
+   url = url .. 'page=' .. page
    HTTP:get(url, {}, parse_results)
 end
 

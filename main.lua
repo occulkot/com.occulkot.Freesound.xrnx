@@ -176,6 +176,7 @@ function search(name, tag, author, sort, page)
       url = url .. filtr .. '&'
    end
    url = url .. 'page=' .. page
+   url = url .. "&fields=id,type,duration,previews,original_filename,username,url,images"
    HTTP:get(url, {}, parse_results)
 end
 
@@ -201,7 +202,7 @@ local sample_table= ""
 function parse_results(data, status, xml)
    local data = json.decode(data)
    samples = {}
-   for i, sampl in pairs(data['sounds']) do
+   for i, sampl in pairs(data['results']) do
       local icon = 'fetching.png'
       samples[sampl['id']] = {
          id = sampl['id'],
@@ -209,9 +210,8 @@ function parse_results(data, status, xml)
          duration = string.format("%.3f", sampl['duration']),
          preview = sampl['preview-lq-ogg'],
          name = sampl['original_filename'],
-         author = sampl['user']['username'],
-         preview = sampl['preview-lq-ogg'],
-         url = sampl['ref'],
+         author = sampl['username'],
+         url = sampl['url'],
          img = icon,
       }
       download_img(sampl['waveform_m'], icon, samples[sampl['id']])

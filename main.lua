@@ -176,7 +176,7 @@ function search(name, tag, author, sort, page)
       url = url .. filtr .. '&'
    end
    url = url .. 'page=' .. page
-   url = url .. "&fields=id,type,duration,previews,original_filename,username,url,images"
+   url = url .. "&fields=id,type,duration,previews,name,username,url,images"
    HTTP:get(url, {}, parse_results)
 end
 
@@ -209,7 +209,7 @@ function parse_results(data, status, xml)
          type = sampl['type'],
          duration = string.format("%.3f", sampl['duration']),
          preview = sampl['preview-lq-ogg'],
-         name = sampl['original_filename'],
+         name = sampl['name'],
          author = sampl['username'],
          url = sampl['url'],
          img = icon,

@@ -42,6 +42,7 @@ renoise.tool():add_menu_entry {
    end
                               }
 
+
 -- variables
 local main_url = "https://freesound.org/apiv2/"
 local credentials = require("credentials")
@@ -504,4 +505,12 @@ function show_search_dialog()
          status_bar
       }
                                    )
+end
+
+-- keybindings
+local keybinding_name = "Global:Tools:Freesound"
+local keybinding_exists = renoise.tool():has_keybinding(keybinding_name)
+if not keybinding_exists then
+  local keybinding_definition_table = {name = keybinding_name, invoke = show_search_dialog}
+  renoise.tool():add_keybinding(keybinding_definition_table)
 end

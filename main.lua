@@ -74,7 +74,6 @@ local page = 1
 
 -- sample manipulation
 function download_sample(sample)
-   local download_info = nil
    local sample_name = string.format("%d-%s.%s", sample['id'], sample['name'], sample['type'])
    local sample_name = string.gsub(string.gsub(sample_name, ' ', ''), '"', '')
    local final_name = ''
@@ -83,6 +82,16 @@ function download_sample(sample)
    else
      final_name = os.tmpname()  ..'.'.. sample['type']
    end
+   
+   local sample_name = string.format("%d-%s.%s", sample['id'], sample['name'], sample['type'])
+   local sample_name = string.gsub(string.gsub(sample_name, ' ', ''), '"', '')
+   local final_name = ''
+   if options.SavePath.value ~= '' then
+     final_name = options.SavePath.value .. sample_name
+   else
+     final_name = os.tmpname()  ..'.'.. sample['type']
+   end
+
    local suc = function (fname, costam, costam)
       os.move(fname, final_name)
       status.text = 'success'
@@ -101,11 +110,10 @@ function download_sample(sample)
       end
    end
    local erro = function (error)
-      status.text="Error while downloading " .. sample_name
+      status.text="Error while downloading " .. sample['name']
    end
-   local id = sample['id']
-   status.text = "downloading " .. sample_name .. ' please wait'
-   local uri = main_url .. 'sounds/' .. id .. '/serve/?api_key=' .. api_key
+   status.text = "downloading " .. sample['name']
+   local uri = sample['hq_sample']
    Request({
               url=uri, 
               method=Request.GET, 
@@ -116,8 +124,7 @@ function download_sample(sample)
 end
 
 
-function preview_sample(sample)
-   
+function preview_sample(sample)   
    if options.Executable.value == '' and options.ExecutableInfo.value == '' then
       local war = vb:multiline_text{width=200, height=100, text= [[ You dont have sample player configured
 Renoise will use default player provided by system ]]}
@@ -209,6 +216,7 @@ function parse_results(data, status, xml)
          type = sampl['type'],
          duration = string.format("%.3f", sampl['duration']),
          preview = sampl['previews']['preview-lq-mp3'],
+         hq_sample = sampl['previews']['preview-hq-mp3'],
          name = sampl['name'],
          author = sampl['username'],
          url = sampl['url'],

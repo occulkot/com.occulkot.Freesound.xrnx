@@ -214,7 +214,7 @@ function parse_results(data, status, xml)
          url = sampl['url'],
          img = icon,
       }
-      download_img(sampl['waveform_m'], icon, samples[sampl['id']])
+      download_img(sampl['images']['waveform_m'], icon, samples[sampl['id']])
    end
    vb.views.sample_list:add_child(show_sample_table(samples))
    vb.views.results.text = string.format("%d results", data['count'])

@@ -208,7 +208,7 @@ function parse_results(data, status, xml)
          id = sampl['id'],
          type = sampl['type'],
          duration = string.format("%.3f", sampl['duration']),
-         preview = sampl['preview-lq-ogg'],
+         preview = sampl['previews']['preview-lq-mp3'],
          name = sampl['name'],
          author = sampl['username'],
          url = sampl['url'],
@@ -316,7 +316,7 @@ function show_settings()
                                                ff,
                                                vb:button{text="Browse for program",
                                                          pressed = function ()
-                                                            local t = renoise.app():prompt_for_filename_to_read({"*"}, 'Select sample player')
+                                                            local t = renoise.app():prompt_for_filename_to_read({"mp3"}, 'Select sample player')
                                                             ff.value = t
                                                end},
                                             },

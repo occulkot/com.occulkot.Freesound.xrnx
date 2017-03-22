@@ -227,8 +227,7 @@ function parse_results(data, status, xml)
    end
    vb.views.sample_list:add_child(show_sample_table(samples))
    vb.views.results.text = string.format("%d results", data['count'])
-   -- TODO: store "next" and "prev" links
-   -- vb.views.pages.text = string.format("%d/%d pages", page, data['num_pages'])
+
    if page > 1 then
       vb.views.prev_button.active = true
    else

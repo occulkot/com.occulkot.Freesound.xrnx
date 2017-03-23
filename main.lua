@@ -42,12 +42,14 @@ renoise.tool():add_menu_entry {
    end
                               }
 
+
 -- variables
-local main_url = "http://freesound.org/api/"
-local api_key = "b79e90926df54fa98a5759d77eb55a29"
+local main_url = "https://freesound.org/apiv2/"
+local credentials = require("credentials")
 local status = nil
 
 local sort_orders = {
+  "Sort by a relevance score returned by our search engine (default).",
    "Sort by the number of downloads, most downloaded sounds first.",
    "Same as above, but least downloaded sounds first.",
    "Sort by the duration of the sounds, longest sounds first.",
@@ -59,6 +61,7 @@ local sort_orders = {
 }
 
 local sort_pars = {
+  "score",
    "downloads_desc",
    "downloads_asc",
    "duration_desc",
@@ -72,7 +75,6 @@ local page = 1
 
 -- sample manipulation
 function download_sample(sample)
-   local download_info = nil
    local sample_name = string.format("%d-%s.%s", sample['id'], sample['name'], sample['type'])
    local sample_name = string.gsub(string.gsub(sample_name, ' ', ''), '"', '')
    local final_name = ''
@@ -81,6 +83,16 @@ function download_sample(sample)
    else
      final_name = os.tmpname()  ..'.'.. sample['type']
    end
+   
+   local sample_name = string.format("%d-%s.%s", sample['id'], sample['name'], sample['type'])
+   local sample_name = string.gsub(string.gsub(sample_name, ' ', ''), '"', '')
+   local final_name = ''
+   if options.SavePath.value ~= '' then
+     final_name = options.SavePath.value .. sample_name
+   else
+     final_name = os.tmpname()  ..'.'.. sample['type']
+   end
+
    local suc = function (fname, costam, costam)
       os.move(fname, final_name)
       status.text = 'success'
@@ -99,11 +111,10 @@ function download_sample(sample)
       end
    end
    local erro = function (error)
-      status.text="Error while downloading " .. sample_name
+      status.text="Error while downloading " .. sample['name']
    end
-   local id = sample['id']
-   status.text = "downloading " .. sample_name .. ' please wait'
-   local uri = main_url .. 'sounds/' .. id .. '/serve/?api_key=' .. api_key
+   status.text = "downloading " .. sample['name']
+   local uri = sample['hq_sample']
    Request({
               url=uri, 
               method=Request.GET, 
@@ -114,8 +125,7 @@ function download_sample(sample)
 end
 
 
-function preview_sample(sample)
-   
+function preview_sample(sample)   
    if options.Executable.value == '' and options.ExecutableInfo.value == '' then
       local war = vb:multiline_text{width=200, height=100, text= [[ You dont have sample player configured
 Renoise will use default player provided by system ]]}
@@ -155,9 +165,9 @@ end
 
 -- freesound api
 function search(name, tag, author, sort, page)
-   local url = main_url  .. 'sounds/search/?api_key=' .. api_key .. "&"
+   local url = main_url  .. 'search/text/?token=' .. credentials.token .. "&"
    local pars = {['tag']='',}
-   pars['name'] = 'q=' .. name .. ''
+   pars['name'] = 'query=' .. name .. ''
    local filtr = ''
    if tag ~= "" then
       filtr = filtr .. ' tag:' .. tag .. ''
@@ -166,14 +176,15 @@ function search(name, tag, author, sort, page)
       filtr = filtr .. ' username:' .. author .. ''
    end
    if filtr ~= "" then
-      pars['filtr'] = 'f=' .. filtr
+      pars['filter'] = 'filter=' .. filtr
    end
    
-   pars['sort'] = 's=' .. sort_pars[sort] .. ''
+   pars['sort'] = 'sort=' .. sort_pars[sort] .. ''
    for i, filtr in pairs(pars) do
       url = url .. filtr .. '&'
    end
-   url = url .. 'p=' .. page
+   url = url .. 'page=' .. page
+   url = url .. "&fields=id,type,duration,previews,name,username,url,images"
    HTTP:get(url, {}, parse_results)
 end
 
@@ -199,24 +210,24 @@ local sample_table= ""
 function parse_results(data, status, xml)
    local data = json.decode(data)
    samples = {}
-   for i, sampl in pairs(data['sounds']) do
+   for i, sampl in pairs(data['results']) do
       local icon = 'fetching.png'
       samples[sampl['id']] = {
          id = sampl['id'],
          type = sampl['type'],
          duration = string.format("%.3f", sampl['duration']),
-         preview = sampl['preview-lq-ogg'],
-         name = sampl['original_filename'],
-         author = sampl['user']['username'],
-         preview = sampl['preview-lq-ogg'],
-         url = sampl['ref'],
+         preview = sampl['previews']['preview-lq-mp3'],
+         hq_sample = sampl['previews']['preview-hq-mp3'],
+         name = sampl['name'],
+         author = sampl['username'],
+         url = sampl['url'],
          img = icon,
       }
-      download_img(sampl['waveform_m'], icon, samples[sampl['id']])
+      download_img(sampl['images']['waveform_m'], icon, samples[sampl['id']])
    end
    vb.views.sample_list:add_child(show_sample_table(samples))
-   vb.views.results.text = string.format("%d results", data['num_results'])
-   vb.views.pages.text = string.format("%d/%d pages", page, data['num_pages'])
+   vb.views.results.text = string.format("%d results", data['count'])
+
    if page > 1 then
       vb.views.prev_button.active = true
    else
@@ -313,7 +324,7 @@ function show_settings()
                                                ff,
                                                vb:button{text="Browse for program",
                                                          pressed = function ()
-                                                            local t = renoise.app():prompt_for_filename_to_read({"*"}, 'Select sample player')
+                                                            local t = renoise.app():prompt_for_filename_to_read({"mp3"}, 'Select sample player')
                                                             ff.value = t
                                                end},
                                             },
@@ -493,4 +504,12 @@ function show_search_dialog()
          status_bar
       }
                                    )
+end
+
+-- keybindings
+local keybinding_name = "Global:Tools:Freesound"
+local keybinding_exists = renoise.tool():has_keybinding(keybinding_name)
+if not keybinding_exists then
+  local keybinding_definition_table = {name = keybinding_name, invoke = show_search_dialog}
+  renoise.tool():add_keybinding(keybinding_definition_table)
 end
